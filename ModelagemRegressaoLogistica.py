@@ -99,3 +99,4 @@ for area in areas:
             lr.fit ( a.reshape(-1,1) , acerto[j,:] )
             thetaj   = lr.coef_[0] + b[i]
             theta[j] = theta[j] + ALPHA * (thetaj-theta[j])
+ 
