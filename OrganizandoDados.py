@@ -116,3 +116,4 @@ for areaM in questoesAreas.keys():
         #------fim da linha
     newFile.close()
     #arquivo escrito
+ 
