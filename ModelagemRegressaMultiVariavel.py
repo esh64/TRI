@@ -73,3 +73,4 @@ for area in areas:
     Ypredxgbr = np.expm1(xgbr.predict(X_test))
     print('RMSE xgbr',np.sqrt(mean_squared_error(y_test, y_pred)))
     print('R2 xgbr', r2_score(y_test, y_pred))
+ 
