@@ -6,23 +6,16 @@ import numpy as np
 #os valores mencionados em constantes devem ser alterados para mudar o ano da prova ou mudar o numero de linhas usados
 
 #constantes
-
-#MICRODADOS_2017_URL='./Microdados Enem 2017/DADOS/MICRODADOS_ENEM_2017.csv'
-#ITENSPROVA_2017_URL='./Microdados Enem 2017/DADOS/ITENS_PROVA_2017.csv'
-MICRODADOS_2016_URL='./Microdados_enem_2016/DADOS/microdados_enem_2016.csv'
-ITENSPROVA_2016_URL='./Microdados_enem_2016/DADOS/itens_prova_2016.csv'
+MICRODADOS_2017_URL='./Microdados Enem 2017/DADOS/MICRODADOS_ENEM_2017.csv'
+ITENSPROVA_2017_URL='./Microdados Enem 2017/DADOS/ITENS_PROVA_2017.csv'
 areas=[ 'MT' , 'CH' , 'CN' , 'LC' ]
 codigos_prova={}
-#codigo das provas relevantes: azul, amarela, rosa e branca
-#codigos_prova['CN']=[391, 392, 393, 394]
-#codigos_prova['CH']=[395, 396, 397, 398]
-#codigos_prova['LC']=[399, 400, 401, 402]
-#codigos_prova['MT']=[403, 404, 405, 406] 
-codigos_prova['CN']=[291, 292, 293, 294]
-codigos_prova['CH']=[295, 296, 297, 298]
-codigos_prova['LC']=[299, 300, 301, 302]
-codigos_prova['MT']=[303, 304, 305, 306] 
-#numero_linhas=1000000
+#codigo das provas relevantes: azul, amarela, rosa e branca !MODIFICAR CASO MODIFIQUE O ANO DA PROVA
+codigos_prova['CN']=[391, 392, 393, 394]
+codigos_prova['CH']=[395, 396, 397, 398]
+codigos_prova['LC']=[399, 400, 401, 402]
+codigos_prova['MT']=[403, 404, 405, 406] 
+CO_ESCOLA=[35563006, 35286187,35134806]
 
 #________________Inicio do programa
 
@@ -40,7 +33,7 @@ questoesAreas={'MT':questoesMT, 'CH':questoesCH, 'CN':questoesCN, 'LCI':questoes
 codigo_itens={'CN':[], 'MT':[], 'CH':[], 'LCI':[], 'LCE':[]}#codigo dos itens
 
 #abrindo as informacoes da prova
-itens = pd.read_csv( ITENSPROVA_2016_URL, encoding = "ISO-8859-1", sep = ';', usecols=['CO_PROVA','CO_POSICAO','CO_ITEM','SG_AREA', 'TP_LINGUA'])
+itens = pd.read_csv( ITENSPROVA_2017_URL, encoding = "ISO-8859-1", sep = ';', usecols=['CO_PROVA','CO_POSICAO','CO_ITEM','SG_AREA', 'TP_LINGUA'])
 
 #fazendo o mapeamento de cada item nas diferentes provas
 for areaM in questoesAreas.keys():
@@ -72,22 +65,24 @@ for areaM in questoesAreas.keys():
     if 'LC' in areaM:
         area='LC'
     #escrevendo um novo arquivo CSV que contera numero de inscricao, nota, itens(codigo) e total de acerto
-    newFile=open(areaM+"2016.csv", 'w')
+    newFile=open(areaM+"2017_ALVO.csv", 'w')
     #escrevendo o cabecalho
-    newFile.write('NU_INSCRICAO;NU_NOTA;')
+    newFile.write('NU_INSCRICAO;CO_ESCOLA;NU_NOTA;')
     for codigo in codigo_itens[areaM]:
         newFile.write(str(codigo)+';')
     newFile.write('NU_ACERTOS\n')
     #cabecalho pronto
     
     #importando os microdados
-    microdados = pd.read_csv( MICRODADOS_2016_URL, encoding = "ISO-8859-1",sep =';',usecols=['CO_ESCOLA','NU_INSCRICAO','TP_PRESENCA_'+area,'CO_PROVA_'+area,'NU_NOTA_'+area,'TX_RESPOSTAS_'+area,'TX_GABARITO_'+area, 'TP_LINGUA']).dropna()
+    microdados = pd.read_csv( MICRODADOS_2017_URL, encoding = "ISO-8859-1",sep =';',usecols=['CO_ESCOLA','NU_INSCRICAO','TP_PRESENCA_'+area,'CO_PROVA_'+area,'NU_NOTA_'+area,'TX_RESPOSTAS_'+area,'TX_GABARITO_'+area, 'TP_LINGUA']).dropna()
     
     #escreverei cada linha de microdados no novo arquivo
     numero_linhasObtidas=len(microdados.values)
     for linha in range(numero_linhasObtidas):
         
         #eliminado o candidato do novo arquivo
+        if microdados.CO_ESCOLA.values[linha]  not in CO_ESCOLA:#candidato nao e da escola alvo
+            continue
         if microdados['CO_PROVA_'+area].values[linha] not in codigos_prova[area]:#se o codigo da prova nao for relevante
             continue
         if (areaM=='LCI' and microdados['TP_LINGUA'].values[linha]==1) or (areaM=='LCE' and microdados['TP_LINGUA'].values[linha]==0):#condidato nao entrara no arquivo da lingua que nao fez prova
@@ -102,7 +97,9 @@ for areaM in questoesAreas.keys():
         #----Comecando a escrever no arquivo
         #primeira coluna: numero inscricao
         newFile.write(str(microdados.NU_INSCRICAO.values[linha])+';')
-        #segunda coluna: nota
+        #segunda coluna: codigo escola, apenas para checar se estou realmente pegando os dados certos
+        newFile.write(str(microdados.CO_ESCOLA.values[linha])+';')
+        #terceira coluna: nota
         newFile.write(str(microdados['NU_NOTA_'+area].values[linha])+';')
         #proximas colunas: questoes
         quantidade_acertos=0
