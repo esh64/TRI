@@ -7,36 +7,52 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 import xgboost as xgb
 import sklearn.linear_model as linear_model
-from sklearn.svm import SVR
-from sklearn.preprocessing import StandardScaler
 
 #constante
-areas=[ 'MT' , 'CH' , 'CN' , 'LCE', 'LCI']
-
-scaler = StandardScaler()
+areas=[ 'MT' , 'CH' , 'CN' , 'LC']
 
 
 for area in areas:
     print(area)
     #abrindoo dataset
-    microdados=pd.read_csv("./"+area+'2017_ALVO.csv',  encoding = "ISO-8859-1", sep = ';',)
+    if area!='LC':
+        microdados=pd.read_csv("./"+area+'2017_ALVO.csv',  encoding = "ISO-8859-1", sep = ';',)
 
-    #alvo
-    y_train = microdados['NU_NOTA'].values
-    
-    X_train=microdados.NU_ACERTOS.values
-    
+        #alvo
+        y_train = microdados['NU_NOTA'].values
+        
+        X_train=microdados.NU_ACERTOS.values
+
+        microdados=pd.read_csv("./"+area+'2016_ALVO.csv',  encoding = "ISO-8859-1", sep = ';',)
+        
+        y_test = microdados['NU_NOTA'].values
+        
+        X_test=microdados.NU_ACERTOS.values
+        
+    else:
+        y_train=[]
+        y_test=[]
+        X_train=[]
+        X_test=[]
+        for area in ['LCE', 'LCI']:
+            microdados=pd.read_csv("./"+area+'2017_ALVO.csv',  encoding = "ISO-8859-1", sep = ';',)
+
+            #alvo
+            y_train = np.concatenate((y_train, microdados['NU_NOTA'].values))
+            
+            X_train= np.concatenate((X_train ,microdados.NU_ACERTOS.values))
+
+            microdados=pd.read_csv("./"+area+'2016_ALVO.csv',  encoding = "ISO-8859-1", sep = ';',)
+            
+            y_test = np.concatenate((y_test,microdados['NU_NOTA'].values))
+            
+            X_test=np.concatenate((X_test,microdados.NU_ACERTOS.values))
+            
     X_train=X_train.reshape(-1, 1)
-
-    microdados=pd.read_csv("./"+area+'2016_ALVO.csv',  encoding = "ISO-8859-1", sep = ';',)
-    
-    y_test = microdados['NU_NOTA'].values
-    
-    X_test=microdados.NU_ACERTOS.values
+            
+    microdados=None
     
     X_test=X_test.reshape(-1, 1)
-    
-    microdados=None
     
     #fazendo com que X_test tenha mesma media e desvio que X_train
     std1=X_test.std()#desvio do test
